@@ -6,7 +6,7 @@
 	
 
 main: rsa.c
-	gcc -ggdb -o rsa rsa.c -lm
+	gcc -ggdb -o main rsa.c -lm
 
 clean:
-	rm -rf *.o rsa
+	rm -rf *.o main
