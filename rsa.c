@@ -3,9 +3,10 @@
 #include <time.h>
 #include <stdlib.h>
 
-char* encode(char *message) {
+char* encode(char *message, int e, int n) {
     printf("Encoding message: %s\n", message);
 
+    char* encoded;
 }
 
 void decode() {
@@ -67,6 +68,13 @@ int e_key(int p, int q) {
     return e;
 }
 
+int mod_inv(int e, int m)
+{
+    for (int x = 1; x < m; x++)
+        if (((e%m) * (x%m)) % m == 1)
+            return x;
+}
+
 int main(int argc, char **argv) {
     printf("Starting custom RSA implementation\n");
     srand(time(0));
@@ -79,13 +87,14 @@ int main(int argc, char **argv) {
 
     int p;
     int q;
+
     int n = pq_key(&p, &q);
-
     int e = e_key(p, q);
-    printf("p=%d, q=%d, n=%d, e=%d\n", p, q, n, e);
+    int secret_key = mod_inv(e, n);
 
+    printf("p=%d, q=%d, n=%d, e=%d, secret_key=%d\n", p, q, n, e, secret_key);
 
     char *message = "This is my secret message";
-    char *secret_message = encode(message);
+    char *secret_message = encode(message, e, n);
     return 0;
 }
