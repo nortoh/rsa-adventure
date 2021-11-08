@@ -4,27 +4,24 @@
 #include <stdlib.h>
 #include <string.h>
 
-int encrypt(char message, int e, int n) {
-    printf("pow: %f\n", pow((int) message, e));
-    return (int) pow((int) message, e) % n;
-}
-
-char *encode(char message[], int e, int n) {
-    printf("Encoding message: %s\n", message);
+int * encrypt(char *message, int e, int n) {
     
-    size_t message_size = strlen(message);
-    char *encoded = malloc(message_size);
+    size_t string_len = strlen(message);
+    printf("String size: %ld\n", string_len);
+    int *encoded = malloc((string_len * sizeof(int))); // 12 * 4B = 48B
+    printf("Encoding size: %ld\n", string_len * sizeof(int));
 
-    for(int c = 0; c < message_size; c++) {
-        // encoded[c] = 'a';
-        // message[c] = encrypt(message[c], e, n);
-        printf("%d ", encrypt(message[c], e, n));
+    for(int i = 0; i < string_len; ++i) {
+        int char_val = message[i];
+        int encoded_val = (int) pow((int) char_val, e) % n;
+        encoded[i] = encoded_val;
+        printf("%c %d -> %d\n", message[i], char_val, encoded_val);
     }
-    printf("\n");
 
+    printf("Encoded size: %ld\n", sizeof(encoded));
     return encoded;
-
 }
+
 
 void decode() {
 
@@ -44,7 +41,7 @@ int get_prime() {
     int prime;
 
     do {
-        int n = 1;
+        int n = rand() % 50;
         prime = pow(n, 2) + n + 41; 
     } while (!is_prime(prime));
     
@@ -67,16 +64,16 @@ int gcd(int a, int b) {
     return a;
 }
 
-int e_key(int p, int q) {
+int generate_e(int p, int q) {
     int r;
     int phi_pq = (p - 1) * (q - 1);
-    int e;
+    int e = 3;
     int g = 0;
-
-    while(g != 1) {
-        e = rand() & 50;
+    
+    while(g != 1 && e > 3 && e < 65539) {
+        e = (rand() % 6) + 1;
         g = gcd(e, phi_pq);
-        printf("e=%d, gcd=%d\n", e, g);
+        // printf("e=%d, gcd=%d\n", e, g);
     }
     
     return abs(e);
@@ -85,7 +82,7 @@ int e_key(int p, int q) {
 int mod_inv(int e, int m)
 {
     for (int x = 1; x < m; x++)
-        if (((e%m) * (x%m)) % m == 1)
+        if (((e % m) * (x % m)) % m == 1)
             return x;
 }
 
@@ -95,15 +92,22 @@ int main(int argc, char **argv) {
 
     int p;
     int q;
-
     int n = pq_key(&p, &q);
-    int e = e_key(p, q);
+    printf("p=%d, q=%d, n=%d\n", p, q, n);
+    
+    int e = generate_e(p, q);
     int secret_key = mod_inv(e, n);
+    printf("e=%d, secret_key=%d\n", e, secret_key);
+    
+    char *string = "Hello, World";
+    int *encoded_data = encrypt(string, e, n);
 
-    printf("[Receiver] p=%d, q=%d, n=%d, e=%d, secret_key=%d\n", p, q, n, e, secret_key);
+    size_t encoded_len = sizeof(encoded_data);
+    printf("SIZE IS %ld\n", encoded_len);
+    for(int i = 0; i < encoded_len; ++i) {
+        // printf("ENCODED: %d\n", encoded_data[i]);
+    }
+    // printf("\n");
 
-    char message[] = "This is my secret message";
-    char *secret_message = encode(message, e, n);
-    printf("Encoded string: %s\n", secret_message);
     return 0;
 }
